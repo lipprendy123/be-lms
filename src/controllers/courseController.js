@@ -9,10 +9,20 @@ const courseController = {
         try {
             const course = await courseModel.find({manager: req.user?._id}).populate({path: 'category', select: 'name -_id'}).populate({path: 'students', select: 'name'})
 
+            const imageUrl = process.env.APP_URL + '/uploads/courses/'
+
+            const response = course.map((item) => {
+                return {
+                    ...item.toObject(),
+                    thumbnail_url: imageUrl + item.thumbnail,
+                    total_students: item.students.length
+                }
+            })
+
             return res.status(200).json({
                 success: true,
                 message: 'Get data success',
-                data: course
+                data: response
             })
         } catch (error) {
             console.log(error);
@@ -55,6 +65,7 @@ const courseController = {
                 name: parse.data.name,
                 category: category._id,
                 tagline: parse.data.tagline,
+                description: parse.data.description,
                 thumbnail: req.file?.filename,
                 manager: req.user._id,
             })

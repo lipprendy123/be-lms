@@ -13,5 +13,7 @@ const upload = multer({
 
 courseRoutes.get('/course', verifyToken ,courseController.getCourse)
 courseRoutes.post('/course', verifyToken , upload.single('thumbnail') ,courseController.postCourse)
+courseRoutes.put('/course/:id', verifyToken , upload.single('thumbnail') ,courseController.updateCourse)
+courseRoutes.delete('/course/:id', verifyToken, courseController.deleteCourse)
 
 export default courseRoutes

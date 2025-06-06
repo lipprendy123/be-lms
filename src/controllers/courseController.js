@@ -1,3 +1,4 @@
+import path from "path";
 import categoryModel from "../models/categoryModel.js";
 import courseModel from "../models/courseModel.js"
 import userModel from "../models/userModel.js";
@@ -90,6 +91,90 @@ const courseController = {
             })
         } catch (error) {
             console.log(error);
+            return res.status(500).json({
+                success: false,
+                message: 'Internal server error'
+            })
+        }
+    },
+
+     async updateCourse(req, res) {
+        try {
+            const body = req.body
+            const courseId = req.params.id
+
+            const parse = mutateCourseSchema.safeParse(body)
+
+            if (!parse.success) {
+                const errorMessages = parse.error.issues.map((err) => err.message)
+
+                if (req?.file.path && fs.existsSync(req?.file?.path)) {
+                    fs.unlinkSync(req?.file?.path)
+                }
+
+                return res.status(500).json({
+                    message: 'Error validation',
+                    data: null,
+                    errors: errorMessages
+                })
+            }
+
+            const category = await categoryModel.findById(parse.data.categoryId)
+            const oldCourse = await courseModel.findById(courseId)
+
+            if (!category) {
+                return res.status(404).json({
+                    message: 'Category id not found'
+                })
+            }
+
+            await courseModel.findByIdAndUpdate(
+                courseId,
+                {
+                    name: parse.data.name,
+                    category: category._id,
+                    tagline: parse.data.tagline,
+                    description: parse.data.description,
+                    thumbnail: req?.file ? req.file?.filename: oldCourse.thumbnail,
+                    manager: req.user._id,
+                }
+            )
+
+            return res.status(201).json({
+                success: true,
+                message: 'Update course success'
+            })
+        } catch (error) {
+            console.log(error);
+            return res.status(500).json({
+                success: false,
+                message: 'Internal server error'
+            })
+        }
+    },
+
+    async deleteCourse(req, res) {
+        try {
+            const {id} = req.params
+            
+            const course = await courseModel.findById(id)
+
+            const dirname = path.resolve()
+
+            const filePath = path.join(dirname, "public/uploads/courses", course.thumbnail)
+
+            if (fs.existsSync(filePath)) {
+                fs.unlinkSync(filePath)
+            }
+
+            await courseModel.findByIdAndDelete(id)
+
+            return res.status(200).json({
+                success: true,
+                message: 'Delete course success'
+            })
+        } catch (error) {
+             console.log(error);
             return res.status(500).json({
                 success: false,
                 message: 'Internal server error'

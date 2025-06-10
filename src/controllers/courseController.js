@@ -34,6 +34,26 @@ const courseController = {
         }
     },
 
+    async getCourseById(req, res) {
+        try {
+            const {id} = req.params
+
+            const course = await courseModel.findById(id)
+
+            return res.status(200).json({
+                success: true,
+                message: 'Get data course by id success',
+                data: course
+            })
+        } catch (error) {
+            console.log(error);
+            return res.status(500).json({
+                success: false,
+                message: 'Internal server error'
+            })
+        }
+    },
+
     async postCourse(req, res) {
         try {
             const body = req.body
